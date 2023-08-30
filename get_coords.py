@@ -187,7 +187,7 @@ def main():
         
         cut = find_points(image,x)
         print("filtered ",x," slice")
-        point.coords = point.coords + get_coordinates(cut,x)
+        point.coords = point.coords + get_coordinates(cut,x-16) #because z start from 16
         print("got coordinates of ",x," slice")
     # print(point.coords)
 

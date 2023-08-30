@@ -1,13 +1,6 @@
 import sys
 import os
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QWidget
-from PyQt5.QtWidgets import QFileDialog
-from design import design
 
-import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.use('Qt5Agg')
 import numpy as np
 import cv2 as cv
 import pydicom
@@ -190,11 +183,7 @@ def main():
     count = 0
     for x in range(16,int((len(point.slices)-1)/2)):
         image = point.slices[x].copy()
-        # self.tresholdSlider.setMaximum(x[self.slicesSlider.value()].max())
-        # print(image)
-        # print(len(image))
-        # treshold(image,self.tresholdSlider.value())
-            # print(i)
+
         
         cut = find_points(image,x)
         print("filtered ",x," slice")

@@ -12,7 +12,8 @@ import numpy as np
 import cv2 as cv
 import pydicom
 
-test_datapath = "e://data/Шапка Богдана/23072418"
+# test_datapath = "e://data/Шапка Богдана/23072418"
+test_datapath = "E://data/Brain_marks_AEvit/23090311"
 
 def mask(image,mask):
     result = image.copy()
@@ -50,62 +51,60 @@ def get_coordinates(image,z_coord):
             cv.putText(blank, "center", (cx - 20, cy - 20),
                     cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
             cv.imshow("Contours", blank)
-        print(f"x: {cx} y: {cy} z: {z_coord}")
-        result.append([cx,cy,z_coord])
+            print(f"x: {cx} y: {cy} z: {z_coord}")
+            result.append([cx,cy,z_coord])
     return result
 
 def find_points(image,z_coord,show=True):
-    treshold(image,1000)
+    # treshold(image,200)
 
     blank_image = image.copy()
-    if show:
-        cv.imshow("original",blank_image)
-    grad_x = cv.Scharr(blank_image, cv.CV_16S, 1, 0,  scale=1, delta=0, borderType=cv.BORDER_DEFAULT)
-    # Gradient-Y
+    blank_image = cv.normalize(blank_image, blank_image, 0, 255, cv.NORM_MINMAX, cv.CV_8UC1)
+    blank_image = cv.medianBlur(blank_image, 5)
+    # if show:
+        # cv.imshow("original",blank_image)
 
-    grad_y = cv.Scharr(blank_image, cv.CV_16S, 0, 1,  scale=1, delta=0, borderType=cv.BORDER_DEFAULT)
+    _, img_thresh = cv.threshold(blank_image, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
     
-    
-    abs_grad_x = cv.convertScaleAbs(grad_x)
-    abs_grad_y = cv.convertScaleAbs(grad_y)
-    
-    
-    grad = cv.addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0)
-    if show:
-        cv.imshow("original_grad", grad)
+    kernel = np.ones((11, 11), np.uint8)
+    img_open = cv.morphologyEx(img_thresh, cv.MORPH_CLOSE, kernel, iterations=1)
+    img_open = cv.morphologyEx(img_thresh, cv.MORPH_OPEN, np.ones((3, 3), np.uint8), iterations=1)
+    # img_open = cv.erode(img_open, cv.getStructuringElement(cv.MORPH_ELLIPSE,(5,5)), iterations=1)
+    cv.imshow("img_open",img_open)
 
-    
-    erode_img = cv.dilate(grad,cv.getStructuringElement(cv.MORPH_ELLIPSE,(3,3)), iterations=1)
-    erode_img = cv.erode(erode_img, cv.getStructuringElement(cv.MORPH_ELLIPSE,(9,9)), iterations=1)
-
-    erode_img = cv.dilate(erode_img,cv.getStructuringElement(cv.MORPH_ELLIPSE,(9,9)), iterations=1)
-    erode_img = cv.dilate(erode_img,cv.getStructuringElement(cv.MORPH_RECT,(5,5)), iterations=2)
-    # erode_img = cv.dilate(erode_img,cv.getStructuringElement(cv.MORPH_CROSS,(3,3)), iterations=2)
-    erode_img = ~erode_img
-
+    height = blank_image.shape[0]
+    width = blank_image.shape[1]
+    center = (int(height/2),int(width/2))
     # hard mask for images (expected similar mri analysis)
-    erode_img = cv.rectangle(erode_img, (0,100), (180,255), (0,0,0), -1)
-    erode_img = cv.rectangle(erode_img, (0,255), (255,200), (0,0,0), -1)
-    erode_img = cv.circle(erode_img, (150,100),50, (0,0,0), -1)
-
-
-    for i in range(len(erode_img)):
-                    for j in range(len(erode_img)):
-                        if  erode_img[i][j] != 255:
-                            erode_img[i][j] = 0
-    cut = mask(grad, ~erode_img)
-    if show:
-        cv.imshow("erode", ~erode_img)
-        cv.imshow("cut",cut)
-
-    # cut = cv.erode(cut,cv.getStructuringElement(cv.MORPH_CROSS,(3,3)),iterations=1)
+    img_open = cv.rectangle(img_open, (0,int(height/3)), (int(width/2),height), (255,255,255), -1)
+    img_open = cv.rectangle(img_open, (0,height), (width,int(2*height/3)), (255,255,255), -1)
+    img_open = cv.circle(img_open, center,int(height/4), (255,255,255), -1)
+    cv.imshow("Hard_img_open",img_open)
+    contours, _ = cv.findContours(img_open, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
     
-    thresh = cv.threshold(grad, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU)[1]
-    thresh = cv.dilate(thresh, cv.getStructuringElement(cv.MORPH_ELLIPSE,(3,3)), iterations=1)
+    if contours:
+        cnt = max(contours, key=cv.contourArea)
 
+        # Create mask
+        my_mask = np.zeros_like(blank_image)
+        cv.drawContours(my_mask, [cnt], -1, (255), thickness=cv.FILLED)
+    
+    # my_mask = cv.dilate(my_mask,cv.getStructuringElement(cv.MORPH_ELLIPSE,(5,5)), iterations=1)
+    cv.imshow("mask",my_mask)
+    # thresh = cv.dilate(thresh, cv.getStructuringElement(cv.MORPH_ELLIPSE,(3,3)), iterations=1)
 
-    # cv.imshow('thresh', thresh)
+    # treshold(blank_image,7000)
+    # blank_image = blank_image.astype("uint8")
+    # # treshold(grad,4000)
+    # cv.imshow("thresh_grad",blank_image)
+    # cut = cut + blank_image
+    cv.imshow('thresh', img_thresh)
+
+    cut = mask(img_thresh, my_mask)
+    cut = cv.erode(cut, cv.getStructuringElement(cv.MORPH_ELLIPSE,(9,9)), iterations=1)
+    cv.imshow("cut",cut)
+    
     return cut
 
 class DataProvider:
@@ -143,7 +142,7 @@ class Window(QWidget, design):
         self.connectActions()
         
         self.coords = []
-        self.path = "e://data/Шапка Богдана/23072418"
+        self.path = test_datapath
         
         self.slices = self.provider.get_images(self.path)
         # print(self.slices)
@@ -156,7 +155,7 @@ class Window(QWidget, design):
         self.tresholdSlider.valueChanged.connect(self.updatePicture)
         self.loadButton.clicked.connect(self.loadDcom)
 
-    def loadDcom(self,path="e://data/Шапка Богдана/23072418"):
+    def loadDcom(self):
         fileName = QFileDialog.getExistingDirectory(self, 'Select Folder with DCOM')
         if fileName:
             self.path = fileName

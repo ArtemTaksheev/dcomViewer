@@ -1,6 +1,13 @@
 import sys
 import os
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QFileDialog
+from design import design
 
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Qt5Agg')
 import numpy as np
 import cv2 as cv
 import pydicom
@@ -135,7 +142,8 @@ class Points():
         self.coords = []
         self.path = "e://data/Шапка Богдана/23072418"
         
-        self.slices = self.provider.get_images(self.path)
+        # self.slices = self.provider.get_images(self.path)
+        self.slices = self.provider.load_scan(self.path)
         # print(self.slices)
         self.slicesMax = (len(self.slices) - 1)
         # self.tresholdSlider.setMaximum(self.slices[0].max())
@@ -174,29 +182,63 @@ def group_coords(data,maxgap):
         #  print(x.mean())
 
     return result
+def convert_coords(coords,x_axis,y_axis,z_axis):
+    coords[0] = x_axis[coords[0]]
+    coords[1] = y_axis[coords[1]]
+    coords[2] = z_axis[coords[2]]
+    #  return [x_axis[coords[0]],y_axis[coords[1]],z_axis[coords[2]]]
 
 def main():
 
     print("Start")
     point = Points()
+    rows = point.slices[16].Rows
+    columns = point.slices[16].Columns
+    pixel_spacing = point.slices[16].PixelSpacing
+    image_position = point.slices[16].ImagePositionPatient
+    ss = point.slices[16].SliceThickness
+    print("Rows: ", rows," Columns: ", columns," Pixel_spacing: ", pixel_spacing," image_position: ",image_position, " SliceThickness: ",ss)
+    x_axis = np.arange(columns)*pixel_spacing[0]
+    y_axis = np.arange(rows)*pixel_spacing[1]
+    # z_axis = np.arange(0,len(point.slices),ss)
+    # z_axis = np.arange(len(point.slices))*ss
+    z_axis = np.arange(223)*ss # HOW TO GET COUNT OF NEEDED SLICES?
+    print("x_axis: ",x_axis, "x len: ",len(x_axis), "\ny_axis: ", y_axis, " \nz_axis: ",z_axis," z len:", len(z_axis))
     print("Got data")
     count = 0
     for x in range(16,int((len(point.slices)-1)/2)):
-        image = point.slices[x].copy()
-
+        image = point.slices[x].pixel_array.copy()
+        # self.tresholdSlider.setMaximum(x[self.slicesSlider.value()].max())
+        # print(image)
+        # print(len(image))
+        # treshold(image,self.tresholdSlider.value())
+            # print(i)
         
         cut = find_points(image,x)
-        print("filtered ",x," slice")
+        # print("filtered ",x," slice")
         point.coords = point.coords + get_coordinates(cut,x-16) #because z start from 16
-        print("got coordinates of ",x," slice")
+        # print("got coordinates of ",x," slice")
     # print(point.coords)
 
     result = group_coords(point.coords,20)
+
+    file = open('result_px.txt', 'w')
     for i in result:
          i.insert(0,result.index(i))
          print(i)
+         file.writelines("%s\n" % str(i))
+    # file.write('whatever')
+    file.close()
 
+    result = []
+    result = group_coords(point.coords,20)
 
+    file = open('result_xyz.txt', 'w')
+    for i in result:
+        convert_coords(i,x_axis,y_axis,z_axis)
+        i.insert(0,result.index(i))
+        print(i)
+        file.writelines("%s\n" % str(i))
 if __name__ == "__main__":
     main()
 

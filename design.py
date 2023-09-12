@@ -9,43 +9,56 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
 import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.use('Qt5Agg')
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 class design(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(698, 479)
-        self.gridLayout_2 = QtWidgets.QGridLayout(Form)
-        self.gridLayout_2.setObjectName("gridLayout_2")
-        self.gridLayout = QtWidgets.QGridLayout()
+        Form.resize(1010, 631)
+        self.gridLayout = QtWidgets.QGridLayout(Form)
         self.gridLayout.setObjectName("gridLayout")
+        self.loadButton = QtWidgets.QPushButton(Form)
+        self.loadButton.setObjectName("loadButton")
+        self.gridLayout.addWidget(self.loadButton, 0, 1, 1, 2)
+        self.label_2 = QtWidgets.QLabel(Form)
+        self.label_2.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_2.setObjectName("label_2")
+        self.gridLayout.addWidget(self.label_2, 3, 0, 1, 1)
+        self.label = QtWidgets.QLabel(Form)
+        self.label.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
+        self.label.setObjectName("label")
+        self.gridLayout.addWidget(self.label, 2, 0, 1, 1)
+        self.label_3 = QtWidgets.QLabel(Form)
+        self.label_3.setObjectName("label_3")
+        self.gridLayout.addWidget(self.label_3, 5, 1, 1, 1)
+        self.tresholdSlider = QtWidgets.QSlider(Form)
+        self.tresholdSlider.setOrientation(QtCore.Qt.Horizontal)
+        self.tresholdSlider.setObjectName("tresholdSlider")
+        self.gridLayout.addWidget(self.tresholdSlider, 3, 1, 1, 3)
+        self.slicesSlider = QtWidgets.QSlider(Form)
+        self.slicesSlider.setOrientation(QtCore.Qt.Horizontal)
+        self.slicesSlider.setObjectName("slicesSlider")
+        self.gridLayout.addWidget(self.slicesSlider, 2, 1, 1, 3)
+        self.getMarkers = QtWidgets.QPushButton(Form)
+        self.getMarkers.setObjectName("getMarkers")
+        self.gridLayout.addWidget(self.getMarkers, 4, 1, 1, 3)
+        self.coords = QtWidgets.QLabel(Form)
+        self.coords.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.coords.setAlignment(QtCore.Qt.AlignCenter)
+        self.coords.setObjectName("coords")
+        self.gridLayout.addWidget(self.coords, 5, 2, 1, 1)
+        self.savePoint = QtWidgets.QPushButton(Form)
+        self.savePoint.setObjectName("savePoint")
+        self.gridLayout.addWidget(self.savePoint, 5, 3, 1, 1)
 
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
         self.canvas.setObjectName("canvas")
-        self.gridLayout.addWidget(self.canvas, 1, 1, 1, 1)
 
-        self.label = QtWidgets.QLabel(Form)
-        self.label.setObjectName("label")
-        self.gridLayout.addWidget(self.label, 2, 0, 1, 1)
-        self.slicesSlider = QtWidgets.QSlider(Form)
-        self.slicesSlider.setOrientation(QtCore.Qt.Horizontal)
-        self.slicesSlider.setObjectName("slicesSlider")
-        self.gridLayout.addWidget(self.slicesSlider, 2, 1, 1, 1)
-        self.label_2 = QtWidgets.QLabel(Form)
-        self.label_2.setObjectName("label_2")
-        self.gridLayout.addWidget(self.label_2, 3, 0, 1, 1)
-        self.loadButton = QtWidgets.QPushButton(Form)
-        self.loadButton.setObjectName("loadButton")
-        self.gridLayout.addWidget(self.loadButton, 0, 1, 1, 1)
-        self.tresholdSlider = QtWidgets.QSlider(Form)
-        self.tresholdSlider.setOrientation(QtCore.Qt.Horizontal)
-        self.tresholdSlider.setObjectName("tresholdSlider")
-        self.gridLayout.addWidget(self.tresholdSlider, 3, 1, 1, 1)
-        self.gridLayout_2.addLayout(self.gridLayout, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.canvas, 1, 0, 1, 4)
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -53,16 +66,20 @@ class design(object):
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
-        self.label.setText(_translate("Form", "Slices"))
+        self.loadButton.setText(_translate("Form", "Load DCOM file"))
         self.label_2.setText(_translate("Form", "Treshold"))
-        self.loadButton.setText(_translate("Form", "Load"))
+        self.label.setText(_translate("Form", "Slices"))
+        self.label_3.setText(_translate("Form", "Coords"))
+        self.getMarkers.setText(_translate("Form", "Get markers"))
+        self.coords.setText(_translate("Form", "( , , )"))
+        self.savePoint.setText(_translate("Form", "Save point"))
 
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     Form = QtWidgets.QWidget()
-    ui = design()
+    ui = Ui_Form()
     ui.setupUi(Form)
     Form.show()
     sys.exit(app.exec_())

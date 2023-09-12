@@ -12,16 +12,20 @@ test_filename = "00000016.dcm"
 
 
 class DataProvider:
-    def __init__(self, datafolder=test_datapath) -> None:
-        self.data_folder = datafolder
-        self.slices = self.load_scan(datafolder)
 
-    def get_slices(self):
-        return self.slices
+    def __init__(self, folder_path=None) -> None:
+        if folder_path:
+            self.folder_path = folder_path
+        else:
+            self.folder_path = test_datapath
+        
+    def get_images(self,path):
+        slices = self.load_scan(path)
+        return [s.pixel_array for s in slices]
     
     def load_scan(self,path):
         slices = [pydicom.dcmread(path + "/" + s) for s in os.listdir(path)]
-        slices.sort(key=lambda x: int(x.InstanceNumber))
+        # slices.sort(key=lambda x: int(x.InstanceNumber))
         return slices
 
 

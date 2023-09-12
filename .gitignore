@@ -2,3 +2,5 @@
 .vscode/
 __pycache__/
 my_copy.py
+coords_new.py
+get_coords.py
